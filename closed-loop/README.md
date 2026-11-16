@@ -1,5 +1,8 @@
 # CRANIUM on nRF7002 DK
 
+**To set up, run or demo the bench**, use [docs/hapimatic-demo.md](../docs/hapimatic-demo.md): the one runbook,
+with setup, wiring, the AI loop, results and fixes. This README explains the firmware, protocol and design.
+
 **In the CRANIUM repository.** This bench came from
 [adamshal/cranium-closed-loop](https://github.com/adamshal/cranium-closed-loop) with its history, and lives in
 `closed-loop/`: run its commands from this folder, not from the repository's root. Its host tests run in the

@@ -1,5 +1,8 @@
 # Professor-example alignment - 2026-11-15
 
+**To run the bench, see [docs/hapimatic-demo.md](../docs/hapimatic-demo.md)**, the one runbook. This page records
+what the software validation proved; the host suite has 29 tests now.
+
 The public app now follows the example's app/west/CMake/Kconfig/board-overlay
 layout. The app generates its own selected profile header, and both Nordic
 application/network images build with verified effective settings. The pinned

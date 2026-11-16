@@ -1,5 +1,8 @@
 # One-time physical setup
 
+**The runbook is [docs/hapimatic-demo.md](../docs/hapimatic-demo.md)**: it carries this wiring together with the run,
+the results and the fixes. This page stays for reference.
+
 The computer-side setup is installed on this Mac. The Pi and its SD card are
 not needed for this lab loop. This programs the **nRF7002 DK's nRF5340**, so use
 the project development board rather than another lab group's device.

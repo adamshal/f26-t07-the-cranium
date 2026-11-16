@@ -49,8 +49,12 @@ course's [Hapimatic example](https://github.com/ese5180/hapimatic-test-v1) and i
   Flashing the bench app replaces the product firmware and its bootloader on that DK: use a spare DK, or set the
   board up again afterwards ([new-board-setup.md](new-board-setup.md)).
 
+**Running it or showing it:** [`hapimatic-demo.md`](hapimatic-demo.md), the one runbook for the bench: what the demo
+shows, the checklist (Mac, coding agent, DK, Saleae and PPK2 wiring), Configure Bench, `./bench doctor`, Start AI Loop,
+where the results land, what a pass looks like, fixes, and putting Cranium back on the DK afterwards.
+
 Run the host tests with `cd closed-loop && python3 -m venv .venv && .venv/bin/pip install -r requirements.txt &&
-./bench test`; the full bench (`./setup.sh`, then `PHYSICAL-SETUP.md`) is set up for Apple Silicon macOS. MIT, with
+./bench test`; the full bench is set up for Apple Silicon macOS ([`hapimatic-demo.md`](hapimatic-demo.md)). MIT, with
 Adam's `LICENSE` and `NOTICE.md`; Hapimatic (AGPL-3.0) is downloaded by `setup.sh`, never committed.
 
 ## Customers and apps
