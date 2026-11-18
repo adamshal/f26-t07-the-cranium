@@ -46,12 +46,12 @@ We’re building a $230 add-on that turns laptop-dependent DJ controllers like t
 
 * Customer perspectives of 3 exact target customers (intermediate level Pioneer FLX4 owners who play small/medium live events)
   * Already held interviews, obtained specific pricing perspectives and target DJ controllers.
-  * Price point is targeting to a common tipping point for customers (-$X compared to an upgrade to an all-in-one board)
-  * What they told us: price matters most. They want XDJ-style standalone use for under $250, which is why we price at $230.
+  * Price point is targeting to a common tipping point for customers
+    * What they told us: price matters most. They want XDJ-style standalone use for under $250, which is why we price at $230.
   * Battery power is not important to them if it adds cost, so the MVP runs from a USB-C wall supply.
   * It has to feel robust. DeckShark’s 3D-printed hook-on case feels cheap to them, and they would rather slide the controller into a dock or rail, so our casework is a rail plus a screen and board frame.
 * An EE and music technologist we reached through Demetrius’s Drexel contact, for input on audio processing.
-* Competitor's (DeckShark) Community Discord - finding additional consumer perspectives and specific failure points of direct competitors. Learning from their
+* Competitor's (DeckShark) Community Discord - finding additional consumer perspectives and specific failure points of direct competitors.
 
 ### 3.2.5 System-Level Diagrams
 
