@@ -56,9 +56,12 @@ We’re building a $230 add-on that turns laptop-dependent DJ controllers like t
 ### 3.2.5 System-Level Diagrams
 
 - **Create a device block diagram that details the power architecture, microcontroller, & peripherals**
-  ![Block diagram](<./pics/Block Diagram.png>)
+
+![1794976437481](image/README/1794976437481.png)
+
 - **Create a communication diagram**
-  ![Communication diagram](<./pics/Communication Diagram.png>)
+
+![1794976418948](image/README/1794976418948.png)
 
 Where the design is now. The two diagrams above are from Pitch #1 (September) and still show that proposal: the nRF5340 running the audio engine, a 3.5-inch screen, LE Audio speakers, and the phone as the only internet link. The MVP has moved on since then. Until the diagrams are redrawn, this table is the current architecture.
 
