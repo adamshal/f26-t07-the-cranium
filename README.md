@@ -17,25 +17,41 @@
 
 ## 3.2 Concept Development
 
-### 3.2.2 Product Name & Function
+### Description
 
-**Cranium** is a mounted attachment to beginner DJ controllers that removes the need for a laptop. This solution will be more familiar, cost-effective, and sustainable than directly upgrading these popular controllers to all-in-one DJ systems. The device will utilize BLE audio to challenge typical issues with wireless audio as well as a secondary board in a Raspberry Pi to develop more robust display support at our price and time range.
+Cranium is a mounted attachment to beginner DJ controllers, starting with the Pioneer DDJ-FLX4, that removes the need for a laptop. A Raspberry Pi 4 runs Mixxx on a built-in 7-inch touchscreen, and a Nordic nRF7002 DK (an nRF5340 plus the nRF7002 Wi-Fi 6 chip) keeps every unit connected for signed over-the-air updates and fleet monitoring. This solution will be more familiar, user-friendly and cost-effective than directly upgrading these popular controllers to all-in-one DJ systems.
+
+### Production Function
+
+Cranium runs Mixxx, the open source DJ software, on a built-in Raspberry Pi 4 with a 7-inch touchscreen (a balance between usability and size), so up and coming hobbyist DJs can perform with less equipment and less risk than existing solutions. Instead of a cumbersome, personally valuable laptop, or an awkward phone mount that’s unusable with Mixxx’s GUI, Cranium is plug and play: the controller connects over USB, music loads from a USB drive, and the cable management is handled ahead of time. The nRF5340 on the nRF7002 DK handles the wireless side: Wi-Fi to AWS IoT for signed firmware updates, crash reports through Memfault and set history for our customer site, plus Bluetooth LE so our phone app can update a unit when no Wi-Fi is around.
 
 ### 3.2.3 Target Market & Demographics
 
-- **Who will be using your product?** New and intermediate FLX4 DJs.
-- **Who will be purchasing your product?** FLX4 owners seeking standalone capability + their friends and family as gifts.
-- **Where would you deploy your product?** U.S. first through online D2C, then globally.
-- **How large is the target market?** ~$28M existing U.S. FLX4 market, growing by $7.1M annually.
-- **How much do you expect to capture?** ~$1M/year by Year 3 (given 1% adoption at $200/unit).
-- **How much might your device cost, roughly?** About $200 to the customer, well below Pioneer's standalone XDJ systems.
-- **What competitors are already in the space?** Pioneer’s XDJ systems as the traditional standalone alternative, less desirable standalone systems from Numark and Denon, and DeckShark as an early-stage add-on startup.
+We’re building a $230 add-on that turns laptop-dependent DJ controllers like the Pioneer DDJ-FLX4 into standalone DJ systems, so DJs can leave their laptops at home without replacing the controller they already own. We’re targeting new and intermediate DJs in the U.S. who own an FLX4 and are moving into parties, events, and mobile gigs, with the broader DJ-controller market estimated at ~$310m annually, 28% of which comes from the U.S., and a current FLX4 userbase of ~500,000 with an additional ~120,000 sold annually. Our first customer interview with an intermediate FLX4 owner validated laptop dependence as the core pain point, with Pioneer’s standalone XDJ line being their main potential alternative.
+
+- Who will be using your product?
+  - New and intermediate FLX4 DJs.
+- Who will be purchasing your product?
+  - FLX4 owners seeking standalone capability + their friends and family as gifts
+- Where would you deploy your product?
+  - U.S. first through online D2C, then globally.
+- How large is the target market?
+  - ~$28M existing U.S. FLX4 market, growing by $7.1M annually
+- How much do you expect to capture? ~$1.15M/year by Year 3 (about 5,000 units, or 1% adoption, at our $230 price)
+- What competitors are already in the space?
+  - Pioneer’s XDJ systems as the traditional standalone alternative, less desirable standalone systems from Numark and Denon, and DeckShark as an early-stage add-on startup.
+  - Standalone decks start at $699 (Numark Mixstream Pro+), and the closest match, AlphaTheta’s OMNIS-DUO, is $1,499. Some DJs get by with a phone and a DJ app, or a DIY Raspberry Pi build, which takes a tech-savvy user and time
 
 ### 3.2.4 Stakeholders
 
-- Adam:  Customer perspectives of 3 exact target customers (intermediate level Pioneer FLX4 owners who play small/medium live events)
-  - Already held interviews, obtained specific pricing perspectives and target DJ controllers.
-- Competitor's (DeckShark) Community Discord - finding additional consumer perspectives and specific failure points of direct competitors.
+* Customer perspectives of 3 exact target customers (intermediate level Pioneer FLX4 owners who play small/medium live events)
+  * Already held interviews, obtained specific pricing perspectives and target DJ controllers.
+  * Price point is targeting to a common tipping point for customers (-$X compared to an upgrade to an all-in-one board)
+  * What they told us: price matters most. They want XDJ-style standalone use for under $250, which is why we price at $230.
+  * Battery power is not important to them if it adds cost, so the MVP runs from a USB-C wall supply.
+  * It has to feel robust. DeckShark’s 3D-printed hook-on case feels cheap to them, and they would rather slide the controller into a dock or rail, so our casework is a rail plus a screen and board frame.
+* An EE and music technologist we reached through Demetrius’s Drexel contact, for input on audio processing.
+* Competitor's (DeckShark) Community Discord - finding additional consumer perspectives and specific failure points of direct competitors. Learning from their
 
 ### 3.2.5 System-Level Diagrams
 
@@ -44,33 +60,34 @@
 - **Create a communication diagram**
   ![Communication diagram](<./pics/Communication Diagram.png>)
 
+Where the design is now. The two diagrams above are from Pitch #1 (September) and still show that proposal: the nRF5340 running the audio engine, a 3.5-inch screen, LE Audio speakers, and the phone as the only internet link. The MVP has moved on since then. Until the diagrams are redrawn, this table is the current architecture.
+
+| Block         | Now (MVP)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Power         | 5.1 V / 3 A USB-C wall supply into the Raspberry Pi 4. The Pi powers the 7-inch display, and its USB ports power the FLX4, the music drive and (planned) the nRF7002 DK. No battery in the MVP.                                                                                                                                                                                                                                                                                                    |
+| Processors    | Raspberry Pi 4 (2 GB): Mixxx, the touchscreen UI and audio. nRF5340 on the nRF7002 DK: Wi-Fi through the nRF7002, Bluetooth LE, MCUboot and TF-M secure boot, signed OTA updates and Memfault.                                                                                                                                                                                                                                                                                                     |
+| Peripherals   | Pioneer DDJ-FLX4 over USB (MIDI control plus its built-in sound card, so audio leaves through the FLX4’s RCA master output and headphone jack), the 7-inch 800 x 480 DSI touchscreen, a USB drive for the music library, and on the DK an 8 MB external flash for the update slot and two buttons.                                                                                                                                                                                                |
+| Communication | Wi-Fi from the nRF7002 DK to AWS IoT Core (MQTT with mutual TLS); update images come over HTTPS from S3, and Memfault data rides the same link. Bluetooth LE from our phone app, with passkey pairing, for status and updates when there is no Wi-Fi. The console, the customer site (craniumiot.com) and the apps talk to AWS. A UART link from the Pi to the nRF5340 for the heartbeat and session data is planned; it needs a 1.8 V to 3.3 V level shifter because the DK’s I/O runs at 1.8 V. |
+
 ### 3.2.6 Security Requirements Specification
 
-| Code   | Name                  | Definition                                                                                                                                                                                                                                                       |
-| ------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| SEC 01 | Firmware Verification | The system shall run only signed firmware images. Firmware images shall be protected from being modified or copied.                                                                                          |
-| SEC 02 | Initialization        | The device shall implement secure boot functionality to prevent unauthorized firmware modifications.                                                                                                         |
-| SEC 03 | BLE Audio             | The BLE connection shall implement authentication and authorization before allowing access to user’s other device(s).                                                                                        |
-| SEC 04 | OTAFU                 | Updates shall be written to an inactive partition, and the device shall automatically roll back if the new image fails to boot. Updates shall start only when a release manager, signed in with a password and an authenticator code, deploys them, and not while audio is playing. |
-| SEC 05 | Physical Security     | The enclosure shall be spill-resistant and include a lock slot, with no externally accessible debug headers. The unit shall mount securely to the controller without loading its ports.                      |
-
-**Not met on the dev kit yet** (more in the [threat model](docs/aws-iot.md#threat-model)):
-
-- **SEC 01:** the network core's image isn't signed, because it's flashed over the debug port. Images are stored unencrypted, so they can be copied, but they hold no secrets.
-- **SEC 02:** nothing checks MCUboot itself, and the open debug port could replace it.
-- **SEC 03:** there's no audio on the board yet, so nothing to protect.
-- **SEC 04:** there's no audio check yet. Serial recovery has no trial or revert, and a golden image restore skips the version check on purpose.
-- **SEC 05:** there's no enclosure yet, and the debug port stays open for development.
+| Code   | Name                  | Definition                                                                                                                                                                                                                                                                               |
+| ------ | --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| SEC 01 | Firmware Verification | The system shall run only signed firmware images. Firmware images shall be protected from being modified or copied.                                                                                                                                                                      |
+| SEC 02 | Initialization        | The device shall implement secure boot functionality to prevent unauthorized firmware modifications                                                                                                                                                                                      |
+| SEC 03 | BLE Link              | The Bluetooth LE link shall require passkey pairing (authenticated and encrypted) before a phone can read a unit’s status or send it a firmware image. An image sent over Bluetooth shall install only after a button press on the unit and the same signature check as a Wi-Fi update. |
+| SEC 04 | OTAFU                 | Updates shall be written to an inactive partition, and the device shall automatically roll back if the new image fails to boot. Updates shall start only when a release manager, signed in with a password and an authenticator code, deploys them, and not while audio is playing.      |
+| SEC 05 | Physical security     | The enclosure shall be spill-resistant and include a lock slot, with no externally accessible debug headers. The unit shall mount securely to the controller without loading its ports.                                                                                                  |
 
 ### 3.2.7 Hardware Requirements Specification
 
-| Code  | Name                    | Definition                                                                                                                                                                        |
-| ----- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HW 01 | Microcontroller         | The device shall be controlled by an nRF5340 microcontroller (nRF7002 DK) to manage I/O peripherals and communication with wireless modules.                                      |
-| HW 02 | Operable Without Laptop | All playback functions, mixing, library browsing, and setup shall be fully operable using only the controller and built-in screen. No external computer is required at any point. |
-| HW 03 | Deck Interface          | USB-C female port, 2 buttons, 2 USB-A female ports, and screen.                                                                                                                   |
-| HW 04 | Wired Audio Outputs     | Dual XLR output, RCA output, and 3.5mm headphone jack.                                                                                                                            |
-| HW 05 | Mechanical              | The unit shall mount on the FLX4 with zero mechanical load on the controller's USB and RCA ports.                                                                                 |
+| Code  | Name                    | Definition                                                                                                                                                                                                                                       |
+| ----- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| HW 01 | Processors              | The device shall be controlled by the nRF5340 microcontroller on a Nordic nRF7002 DK, which manages the I/O peripherals, the nRF7002 Wi-Fi 6 companion chip and Bluetooth LE. A Raspberry Pi 4 (2 GB) shall run Mixxx and drive the touchscreen. |
+| HW 02 | Operable without laptop | All playback functions, mixing, library browsing, and setup shall be fully operable using only the controller and built in screen. No external computer is required at any point.                                                                |
+| HW 03 | Deck Interface          | USB-C female port, 2 buttons, 2 USB-A female ports, and a 7-inch 800 x 480 capacitive touchscreen                                                                                                                                                |
+| HW 04 | Wired Audio Outputs     | Audio shall play through the controller’s built-in sound card (on the FLX4, the RCA master output and the 3.5 mm headphone jack), so the MVP adds no audio hardware. Dual XLR outputs should be added in a later revision.                      |
+| HW 05 | Mechanical              | The unit shall mount on the FLX4 with zero mechanical load on the controller’s USB and RCA ports.                                                                                                                                               |
 
 ### 3.2.8 Software Requirements Specification
 
@@ -78,113 +95,99 @@
 | ------ | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | SRS 01 | Boot and Device Detection | The system shall boot within 30 seconds of power-on and shall recognize the controller within 5 seconds of connection. If the controller is disconnected, the system shall resume operation upon reconnection without requiring a restart. |
 | SRS 02 | Audio Performance         | The system shall play audio with no more than 3 seconds of delay and no audio dropouts during a test with two decks and effects running.                                                                                                   |
-| SRS 03 | MCU/PI Handshake          | The MCU shall exchange a heartbeat with the PI over UART and report battery life.                                                                                                                                                          |
-| SRS 04 | Library Support           | The system shall support libraries prepared directly from a USB drive, keeping the user's playlists and saved track markers.                                                                                                               |
-| SRS 05 | Data Integrity            | The MCU shall trigger a graceful shutdown, with no filesystem corruption, when the battery drops below 5%.                                                                                                                                 |
+| SRS 03 | MCU/PI Handshake          | The nRF5340 shall exchange a heartbeat with the Pi over UART and report the unit’s power status: USB supply present and supply voltage today, and battery level once a battery is fitted.                                                 |
+| SRS 04 | Library Support           | The system shall support libraries prepared directly from a USB drive, keeping the user’s playlists and saved track markers.                                                                                                              |
+| SRS 05 | Data Integrity            | The MCU shall trigger a graceful shutdown, with no filesystem corruption, when the user powers off or the supply runs low (battery below 5% once a battery is fitted).                                                                     |
 
-## 3.5 Wireless Demo & Secure Firmware Updates
+# Power Budget
 
-### 3.5.5 Firmware Security Implementation
+Rough budget for one unit, in milliamps at 5 V from the 5.1 V / 3 A USB-C supply. Nothing has been measured on an assembled unit yet, so these are datasheet and reference figures. We will check them with a USB power meter on the input and with the PPK2 on the nRF5340 rail.
 
-#### (3.5.1) Bootloading process
+| Load                                | Powered from | Typical (mA)  | Peak (mA)      | Basis                                                                                                                                                                                                         |
+| ----------------------------------- | ------------ | ------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Raspberry Pi 4 (2 GB) running Mixxx | USB-C supply | 600           | 1,400          | Raspberry Pi’s typical bare-board figure is 600 mA; a Pi 4 has been measured above 1,400 mA under full four-core load                                                                                        |
+| Hosyond 7-inch DSI touchscreen      | From the Pi  | 440           | 440            | 2.2 W at 5 V (product listing), backlight on                                                                                                                                                                  |
+| Pioneer DDJ-FLX4 controller         | Pi USB       | 500           | 500            | Rated USB bus power, 5 V / 500 mA                                                                                                                                                                             |
+| nRF7002 DK (nRF5340 + nRF7002)      | Pi USB       | 60            | 250            | Estimate, including the DK’s on-board debugger. nRF7002: 191 mA transmitting at full power (2.4 GHz), 49.6 mA listening, about 1.1 mA average in power save. nRF5340 application core: about 8 mA at 128 MHz |
+| USB flash drive (music library)     | Pi USB       | 100           | 200            | Estimate for a typical USB 2.0 flash drive                                                                                                                                                                    |
+| Total                               |              | 1,700 (8.5 W) | 2,790 (14.0 W) | 57% (typical) and 93% (peak) of the 3 A supply                                                                                                                                                                |
+| Pi USB ports only                   |              | 660           | 950            | FLX4, DK and drive together; the Pi 4 shares 1.2 A across its USB ports                                                                                                                                       |
 
-![Boot process](<./pics/Boot Process.png>)
+The 3 A supply covers the peak case with little margin. The USB ports stay under the Pi’s 1.2 A limit as long as the library is on a flash drive rather than a bus-powered hard drive. If we need more headroom, the FLX4 can take power from its own power-only USB-C port instead of the Pi.
 
-On every reset, MCUboot checks the image's SHA-256 and ECDSA P-256 signature, and only boots it if both are valid. The image contains TF-M (secure world: crypto and encrypted storage) and our application (non-secure world). The network core runs the Bluetooth controller, which is flashed over the debug port and isn't updated over the air.
+There is no battery in the MVP, and our interviewees did not rank battery power as important. If we add one later, a 10,000 mAh USB-C power bank (about 37 Wh) would run the typical load for roughly 3.5 hours.
 
-To update, a release manager deploys a signed image from our console, which creates an AWS IoT job. The application downloads the image into the secondary slot, checks it and resets. MCUboot verifies the signature, swaps the slots and starts the new image on trial. If it can't reconnect to AWS IoT, the next reset swaps the old image back. A release manager can also send the image from our phone app over Bluetooth: it lands in the same slot, a person presses Button 1 at the board to install it, and the same signature check and trial follow.
+The nRF7002 DK is not in the BOM sheet (see Hardware BOM), but it is in this budget because every unit runs one.
 
-<!-- SIZES: all image sizes are in the first two rows below. Update them, their label and "pics/Boot Process.png" for each release. -->
+# Hardware BOM
 
-| Question | Answer |
-| --- | --- |
-| How large is your bootloader? | MCUboot is 50,324 bytes of flash in a 64 KB partition, and uses 22,408 bytes of RAM (1.14.0 build). |
-| How large is your existing application code? | The application is 745,168 of 794,474 bytes of flash and uses 404,284 of 405,504 bytes of RAM, with 4,032 more kept for Memfault's crash data. TF-M is 130,008 bytes of flash and uses 36,620 bytes of RAM. Signed together, they're 876,412 bytes in a 933,888-byte slot. The network core's Bluetooth controller is another 133,232 bytes (1.14.0 build, which the board runs). |
-| Does the bootloader or application code handle the firmware image download? | The application. MCUboot has no network stack. |
-| What wireless communication is used to download the images? | Wi-Fi (nRF7002). The job arrives over MQTT with mutual TLS, and the image comes over HTTPS from a signed S3 link. Bluetooth LE is the second way: our phone app uploads the image over a paired, authenticated link. |
-| Why this method? | A signed image is about 860 KB. Wi-Fi reaches the server directly and downloads it in about a minute, with nobody at the board, so it's the main path. Bluetooth needs a phone next to the board and a press of Button 1, so it's for a board with no Wi-Fi in reach. |
-| Where are the downloaded firmware images stored? | In the secondary slot on the DK's external flash (MX25R64, 8 MB), whichever way they came. The running image stays in internal flash until the swap. |
+From the Hardware BOM tab of the[Cranium BOM and Cost Model](https://docs.google.com/spreadsheets/d/1DxhXXcjT0Hgploqj7x2QWS54r0ZcuMWR_F7q05EQHGE/edit) sheet. Costs are per unit in USD. The 1K column uses unit prices at a 1,000-unit build, and parts without a volume quote stay at retail. Tax, freight, software and tooling are not in these totals; tooling is in the financial model.
 
-**Features that handle update failures**
+| Item                 | Description                                                | Manufacturer, part no.                            | Distributor, part no.        | Qty | 1-unit build | 1K build |
+| -------------------- | ---------------------------------------------------------- | ------------------------------------------------- | ---------------------------- | --- | ------------ | -------- |
+| Electrical           |                                                            |                                                   |                              |     | $116.55      | $114.80  |
+| Raspberry Pi         | Raspberry Pi 4 Model B, 2 GB RAM                           | Raspberry Pi Ltd, SC0193                          | CanaKit, PI4-2GB             | 1   | $67.50       | $67.50   |
+| Touchscreen          | Hosyond 7-inch IPS capacitive DSI display, 800 x 480       | Hosyond, 7 Inch Touchscreen IPS DSI Display       | Amazon, B0D3QB7X4Z           | 1   | $38.99       | $38.99   |
+| USB-A to USB-C cable | USB 2.0 data and power cable, 150 mm                       | CviLux USA, DH-20M50054                           | DigiKey, 2987-DH-20M50054-ND | 1   | $1.32        | $1.32    |
+| USB-C power supply   | Official US wall supply, 5.1 V / 3 A, 1.5 m cord           | Raspberry Pi Ltd, SC0218                          | Adafruit, 4298               | 1   | $8.74        | $6.99    |
+| Mechanical, catalog  |                                                            |                                                   |                              |     | $0.86        | $0.86    |
+| ME-OTS-001           | Socket-head screw, 0-80 x 1/16 in, black-oxide alloy steel | Not disclosed, 91251A051                          | McMaster-Carr, 91251A051     | 2   | $0.86        | $0.86    |
+| Mechanical, custom   |                                                            |                                                   |                              |     | $2.11        | $2.11    |
+| ME-001               | Casework: rails                                            | Injection molder (not yet selected), ABS, 0.15 kg |                              | 1   | $0.99        | $0.99    |
+| ME-002               | Casework: screen and board frame                           | Injection molder (not yet selected), ABS, 0.17 kg |                              | 1   | $1.12        | $1.12    |
+| Packaging            |                                                            |                                                   |                              |     | $1.97        | $1.62    |
+| PKG-001              | Corrugated box, white, 10 x 8 x 4 in inside                | ULINE, S-16535                                    | ULINE, S-16535               | 1   | $1.97        | $1.62    |
+| Total per unit       |                                                            |                                                   |                              |     | $121.49      | $119.39  |
 
-| Failure | What happens |
-| --- | --- |
-| Invalid signature | MCUboot won't swap or boot it, so the board keeps its current firmware and reports the update as failed. The console also refuses it on upload. |
-| Faulty code with a valid signature | The new image runs on trial and has 5 minutes to reach AWS IoT and confirm itself. A 120-second watchdog covers a hang. If it doesn't confirm, the next reset swaps the old image back. |
-| Corrupted download | The application checks the SHA-256 against the job and erases the image on a mismatch. It retries with a fresh link, up to five attempts. |
-| Older firmware | The console, the application and MCUboot each refuse a version that isn't newer. |
-| Image for another board (extra credit) | From 1.13.0 every image names its board type and flash layout in its signed area. The console won't offer it to another board, and the board refuses it before installing. |
-| Reset or power loss | During a download, the running image isn't touched. During a swap, MCUboot continues on the next boot. |
-| No update can reach the board | [Serial recovery](#serial-recovery-extra-credit), below. A person can also hold Button 2 through a reset to restore a frozen [golden image](firmware/README.md#golden-image). |
+Casework is costed as material plus processing: ABS at $3 per kg, with processing at 120% of the material cost.
 
-#### FOTA implementation
+Not in the BOM: nRF7002 DK. Each unit also uses a Nordic nRF7002 DK (NRF7002-DK). It carries the nRF5340 that runs our Zephyr firmware, the nRF7002 Wi-Fi 6 companion chip, and the 8 MB external flash that holds the update slot. Nordic hardware comes through the course and sits outside the parts budget, so the DK is left out of the totals above and out of the COGS in the financial model. For reference, it sells for about $53 at U.S. distributors. A production unit would replace the DK with an nRF5340 and nRF7002 on our own board, which is not costed yet.
 
-| Requirement | How it's met |
-| --- | --- |
-| MCUboot support in Zephyr | `SB_CONFIG_BOOTLOADER_MCUBOOT=y` in [`firmware/app/sysbuild.conf`](firmware/app/sysbuild.conf), with settings in `firmware/app/sysbuild/mcuboot/`. |
-| Firmware image in external flash | The secondary slot is on the MX25R64. |
-| Signed images from our own keys | ECDSA P-256 over SHA-256, with a key from `tools/keys.py`. Boards hold only the public half. See [`secrets/README.md`](secrets/README.md). |
-| FOTA over a wireless protocol | Wi-Fi, through AWS IoT jobs: [`ota.c`](firmware/app/src/ota/ota.c) and [`ota_job.c`](firmware/app/src/ota/ota_job.c). Bluetooth LE from the phone apps (extra credit, a second way): [`bt_ota.c`](firmware/app/src/bt/bt_ota.c). |
+# Software BOM
 
-#### Beyond the requirements (extra credit)
+Recurring costs to run the fleet, from the Software BOM tab of the[Cranium BOM and Cost Model](https://docs.google.com/spreadsheets/d/1DxhXXcjT0Hgploqj7x2QWS54r0ZcuMWR_F7q05EQHGE/edit) sheet. Development tools are left out, as the manual asks.
 
-- **Serial recovery over UART:** the manual's named extra credit, [below](#serial-recovery-extra-credit).
-- **A second update path, Bluetooth LE:** our phone apps send a signed image to a board with no Wi-Fi in reach, into the same slot, with the same signature check and trial.
-- **A golden image:** a known-good image kept in external flash, restored by holding Button 2 through a reset ([firmware/README.md](firmware/README.md#golden-image)).
-- **Board-type and flash-layout checks:** from 1.13.0 each signed image names the board and layout it's for, so neither the console nor the board will install it on the wrong one.
-- **Checked before it reaches a board:** the console checks each image's signature, version and size when it's uploaded, and refuses a version that isn't newer.
-- **Download retries:** a corrupted download is erased and fetched again with a fresh link, up to five attempts.
+| Code   | What it pays for                                                                       | Provider                          | Monthly   | Annual    | Notes                                                                                               |
+| ------ | -------------------------------------------------------------------------------------- | --------------------------------- | --------- | --------- | --------------------------------------------------------------------------------------------------- |
+| SW-001 | Device connectivity: MQTT, device shadows, OTA jobs                                    | AWS IoT Core                      | In SW-002 | In SW-002 | Pay per use: $1.00 per million messages and $0.08 per million connection-minutes                    |
+| SW-002 | Cloud backend and console: Lambda, API Gateway, DynamoDB, S3, Cognito, Secrets Manager | Amazon Web Services               | $10.00    | $120.00   | Monthly budget cap set in cloud/infra/budget.yaml; actual use is a few dollars a month for 4 boards |
+| SW-003 | Mixxx DJ software, our fork (dbosket/mixxx, branch cranium), running on the Pi         | Open source, GPL-2.0-or-later     | $0        | $0        | Shipping it means offering the source                                                               |
+| SW-004 | Wi-Fi location for the board map                                                       | AWS Location Service              | In SW-002 | In SW-002 | $1.00 per 1,000 positions, about $0.15 per board per month                                          |
+| SW-005 | Fleet management: crash reporting and diagnostics                                      | Memfault (Nordic)                 | $0        | $0        | Free tier during development; production plan still to be priced                                    |
+| SW-006 | nRF Connect SDK v3.4.0 (Zephyr RTOS, MCUboot)                                          | Nordic Semiconductor, open source | $0        | $0        | Apache-2.0 and Nordic 5-Clause licenses                                                             |
+| SW-007 | Raspberry Pi OS (trixie, arm64)                                                        | Raspberry Pi Ltd, open source     | $0        | $0        | Runs Mixxx and the metrics collector in pi/                                                         |
+| SW-008 | Desktop console app for Windows and Linux                                              | Electron, open source (MIT)       | $0        | $0        |                                                                                                     |
+| SW-009 | Domain (craniumiot.com) and DNS                                                        | Cloudflare                        | $0.92     | $11.00    | DNS is free; the domain renews at about $11 a year                                                  |
+| Total  | Four MVP boards                                                                        |                                   | $10.92    | $131.00   |                                                                                                     |
 
-#### Serial recovery (extra credit)
+These totals cover the four MVP boards. At scale the cost grows with each board: at today’s 30-second heartbeat a board sends about 100,000 reports a month (about $0.10 in AWS IoT Core), the rules, Lambda and DynamoDB behind them add about 10 to 20 cents, and Wi-Fi location adds about 15 cents. That is roughly $0.35 to $0.45 per board per month, before Memfault’s production plan.
 
-MCUboot also accepts a signed image over UART, as a backup when the network can't be used. Close any terminal on the board's second COM port, then run this from an nRF Connect SDK terminal:
+# Financial Model
 
-```sh
-python tools/recover.py --reset upload <image>  # restarts the board through the debug port
-python tools/recover.py upload <image>          # after holding Button 1 and pressing RESET
-```
+The full model is in the Cost Model tab of the[Cranium BOM and Cost Model](https://docs.google.com/spreadsheets/d/1DxhXXcjT0Hgploqj7x2QWS54r0ZcuMWR_F7q05EQHGE/edit) sheet, which follows Framework’s cost model. The figures below come straight from it.
 
-MCUboot checks the signature at the restart and won't start an image that fails. This path has no version check or revert.
+Pricing strategy and sale price. We sell direct to consumers online for $230 plus $10 shipping, as a one-time purchase. There is no subscription, and firmware and feature updates are included. At $230 we stay under the $250 our interviewees set for XDJ-style standalone use, and under a third of the price of the cheapest standalone deck, the $699 Numark Mixstream Pro+. Because we sell direct there is no distributor margin to cover, so we can price at about 1.9 times the $122.72 FOB cost rather than the usual 2.5 times.
 
-More detail: [test results](docs/test-results.md), [firmware](firmware/README.md), [cloud](docs/aws-iot.md), [phone apps](docs/mobile-apps.md), [binaries](binaries/README.md) and [Raspberry Pi updates](docs/raspberry-pi-ota.md).
+| Per unit                                                                            | USD     |
+| ----------------------------------------------------------------------------------- | ------- |
+| BOM (1K build)                                                                      | $119.39 |
+| Assembly, test and packout (FATP)                                                   | $2.00   |
+| Yield loss and rework                                                               | $1.33   |
+| COGS at FOB                                                                         | $122.72 |
+| Financing (10% a year for the 30 days between paying the manufacturer and the sale) | $1.01   |
+| COGS with financing                                                                 | $123.72 |
+| Logistics: freight in, warehousing, pick and pack, freight out                      | $8.88   |
+| Payment processing (Stripe, 2.9%)                                                   | $6.96   |
+| Duties                                                                              | $0.00   |
+| COGS fulfilled                                                                      | $139.56 |
+| Support, returns and warranty                                                       | $0.74   |
+| Fixed costs spread over 20,000 units (NRE, tooling, certification, excess stock)    | $8.58   |
+| Internal R&D and SG&A spread over 20,000 units                                      | $17.78  |
+| Fully loaded cost                                                                   | $166.66 |
+| Profit per unit at $240                                                             | $73.34  |
 
-## 3.6 Fleet Management
+Program. The model assumes 20,000 units. Fixed costs are $171,634: product NRE $30,000, module NRE $5,000, product tooling $50,000, module tooling $5,000, certification $10,000, and 3% of the BOM for excess and obsolete stock. Internal costs add $250,000 (development $50,000, internal labor $100,000, indirect marketing $100,000), plus 1% promotional discounting and a $3 direct acquisition cost per sale. With 5% remorse returns and 5% warranty returns, that gives $4.56M in sales, $0.19M from 1,000 refurbished units resold at 80%, $4.75M total revenue against $3.33M total cost, and $1.42M gross profit, a 29.9% margin.
 
-From firmware 1.14.0 the boards report to Memfault, in our project in nRF Cloud. The board opens no connection of its own for it: it sends Memfault's data over the AWS IoT connection it already has, on `cranium/<thing>/memfault`, and a function in AWS posts each piece to Memfault with the project key, which never leaves AWS, and acknowledges it so the board sends the next. Updates still come only from our console or the phone app. How it works: [docs/memfault.md](docs/memfault.md).
+Recurring costs. Cloud and fleet costs (see Software BOM) are not in the Cost Model tab yet. At today’s reporting rate they come to roughly $0.35 to $0.45 per board per month, about $13 to $16 per unit over three years, which the $73 profit per unit covers without a subscription.
 
-| Feature | What is built | Shown on a board |
-| --- | --- | --- |
-| OTA firmware updates with version info | Each signed image carries its version (now `1.15.0+0`), which the board reports to the console and to Memfault as its software version, with `nrf7002dk` as its hardware version. A restart for an update is marked `FirmwareUpdate`, and each update that ends sends an event (`update_succeeded`, `update_failed`, `update_rolled_back` and others). `scripts/firmware/build.sh` uploads each release and its symbols to Memfault | Yes, on 2026-11-09: three boards were updated over Wi-Fi from the console (1.14.6, the 1.14.7 fault build, then 1.15.0), and Memfault lists all three on software `1.15.0+0`, with its symbols uploaded. Earlier, on 2026-11-05, 1.14.0 went to a board over Bluetooth from our iPhone app |
-| Core dump | After a crash the board keeps the registers, the stack that crashed and the other threads' stacks (3,968 bytes) in RAM that outlives a reset and a revert, and sends them once it's connected. A demonstration build (`CONFIG_APP_CRASH_DEMO`) crashes once, 60 s after it confirms itself | Yes, on 2026-11-09: the 1.14.7 fault build (below) crashed on three boards, and Memfault shows five issues, each with three core dumps (one per board) and their backtraces |
-| Forward critical device information to Memfault | Why each boot ended (power-on, watchdog, crash, update, a restart for being stuck), and an hourly heartbeat: Wi-Fi signal, connected time and disconnects, AWS IoT reconnects, free heap, and update attempts, failures and refusals. "Send Memfault data now" on the console sends a heartbeat at once | Yes: every reboot, update event and core dump above reached Memfault through AWS IoT. The hourly heartbeat arrives too, but Memfault does not yet name its metrics, because it hasn't matched them to the build's symbols. Our own console shows the board's figures regardless: each board reports its Wi-Fi signal, uptime and heap (free, lowest and size, every 5 minutes) over AWS IoT, and the board's page charts the signal over 24 hours and shows the uptime, the heap and the cause of every reboot |
-| MCU reboot reasons | Every boot sends why the one before ended: the hardware's reset cause (power-on, pin, watchdog, lockup, brownout, software) read once at start-up, the firmware's own (`FirmwareUpdate`, `FirmwareUpdateError`, `UserReset`, `FactoryReset`, and `StuckWifiSilent`, `StuckNoCloud`, `StuckUpdateStall` for a restart for being stuck), and a crash's (assert, hard fault, usage fault, watchdog) | Yes, on 2026-11-09: Memfault lists 42 reboots that week by reason (`FirmwareUpdate`, `PinReset`, `PowerOnReset`, `UserReset`, the five faults, `HardwareWatchdog`), 16 of them marked unexpected |
-| Power status (stands in for battery state of charge) | The DK has no battery and runs from USB, so from 1.15.0 the hourly heartbeat sends `power_usb_present` (1 when the USB regulator sees VBUS) and `supply_mv` (the supply voltage from one SAADC sample) | Sent: the boards run 1.15.0, which puts both values in the hourly heartbeat. Not yet readable by name in Memfault (see the heartbeat above); our console doesn't show these two yet |
-| Zephyr default metrics | From 1.15.0 the Memfault SDK's Zephyr defaults: CPU use (`cpu_usage_pct`), the stack use of the idle thread and the system work queue, free heap and heap use, connected time and syncs, boot time. Left out for RAM or privacy: the TCP/IP counters, the SDK's Wi-Fi metrics (they send the access point's OUI) and CPU temperature (no sensor on this core) | Sent with 1.15.0 in the same heartbeat, with the same gap in Memfault. Our console shows the board's own heap figures |
-| Fault demonstration and one fix for the whole fleet (extra credit) | A test image (`CONFIG_APP_FAULT_DEMO`, 1.14.7+0) faults once per boot, only after it has confirmed itself, five different ways: a failed assert, a write to flash, an undefined instruction, a stack overflow and a hung main loop caught by a watchdog, so Memfault shows five issues with core dumps. Release 1.15.0, deployed to every board at once, has no faults and the two metrics above | Yes, on 2026-11-09: 1.14.7+0 went to the three boards, Memfault shows the five issues above, and 1.15.0 then went to every board |
-| Extra credit: staged rollout and A/B | The console's staged rollouts send an update to a canary board first and to the rest in waves, and stop by themselves when the canary doesn't confirm or too many boards fail. Each board has A and B slots: MCUboot keeps the previous image and puts it back unless the new one confirms itself, and a crash's core dump outlives that revert, so Memfault shows why the new image was given up | Staged rollout, yes, on 2026-11-09: 1.14.6 went to a canary board first, which confirmed it, then to the other boards. Since then each stage also waits until its boards show no new Memfault issue or unexpected reboot (a health gate). A/B, yes: every update on 2026-11-09 (1.14.6, 1.14.7, 1.15.0) went into the second slot, MCUboot swapped it in and ran it on trial, and it confirmed itself. The automatic swap back, for an image that doesn't confirm, has not been needed on a board yet |
-
-**Extra credit: what we built beyond the feature set** (on our console, all deployed by 2026-11-09):
-
-- **Staged rollouts:** a canary board first, then 1–10 stages, each sent to all its boards at once. The console suggests a plan from the group's size, online boards and board types. Shown on boards: 1.14.6 to a canary, then the rest.
-- **Health gate:** a stage moves on only after its boards show no new Memfault issue and no unexpected reboot for a set time (10 minutes by default). If Memfault can't be read, the rollout stops rather than passing.
-- **A/B slots:** every update is installed into the second slot and run on trial, and MCUboot swaps the old image back if it doesn't confirm (see the table).
-- **Roll back to last good:** one click for a group or the fleet. A preview shows each board's version and target, then it runs as a staged rollout with the health gate on.
-- **Alerts:** rules for a board offline, a new Memfault issue, a crash loop, a rollout stopped by itself, and low supply voltage, by email and on any open console or app page.
-- **Memfault in our console:** its issues with their core dumps' backtraces, reboot reasons per board and across the fleet, metric charts, and the software versions in the fleet.
-
-Only the staged rollout and A/B are named in the manual; we'd ask the teaching team to approve the rest as "other features".
-
-The code: [`mflt.c`](firmware/app/src/mflt/mflt.c) and [`mflt_link.c`](firmware/app/src/mflt/mflt_link.c) on the board, and [`memfault.mjs`](cloud/api/src/memfault.mjs) with [`forwarder.mjs`](cloud/api/src/forwarder.mjs) in AWS.
-
-## 3.7 Closing the Loop: HIL Testing + AI
-
-Built on the open-source Hapimatic core, in [`closed-loop/`](closed-loop/) (Adam's bench). An AI coding agent starts from a written requirement with numbers in it, writes the firmware, builds and flashes it onto the nRF7002 DK's nRF5340, measures it with a Saleae logic analyzer and a Nordic PPK2, and changes the firmware again until the measurements pass, with no person in between. The pass tests ([`closed-loop/requirements.json`](closed-loop/requirements.json)) were written before any firmware or measurement. How to run it: [docs/hapimatic-demo.md](docs/hapimatic-demo.md).
-
-| Feature (manual) | What is built | Shown on a board |
-| --- | --- | --- |
-| A peripheral feature from a requirements-based AI prompt, validated with the Saleae | The prompt [`closed-loop/prompts/PERIPHERAL.md`](closed-loop/prompts/PERIPHERAL.md): the nRF5340 takes track and session events on UART0 at 115200 baud, framed with a CRC-16, a bounded length and a rising 32-bit sequence number, rejects corrupt, duplicate and stale frames, acknowledges each one and forwards it over Bluetooth LE to a subscribed client. Pass test: Saleae channel 0 on P0.22 (RX) and channel 1 on P0.20 (TX) independently decode exactly 100 test messages, the duplicate and the corrupted frame are refused, and every ACK comes within 50 ms; the raw captures and image hashes are saved | Pending: both firmware builds and 29 host tests pass, and the bench is set up; the run on the board with the Saleae has not been recorded yet |
-| A low-power mode from an AI prompt, with PPK2 numbers before and after | The prompt [`closed-loop/prompts/LOW-POWER.md`](closed-loop/prompts/LOW-POWER.md): the baseline advertises every 100 ms with the status LED and a 50 ms heartbeat; the candidate advertises every 1000 ms, turns the LED off and waits for UART events instead of polling. Pass test: the PPK2 in ampere mode on the nRF5340 + IOVDD rail (P22 VDD_MEAS), three alternating baseline/candidate pairs of 15 s each, at least 25% lower median current and lower in every pair, and the candidate still passes the Saleae test | Pending: the PPK2 measurement on the prepared board has not been recorded yet |
-
-**What closes the loop:** measured feedback decides the agent's next change, or proves the candidate passes. A build that compiles, or a simulated capture, never counts; the bench refuses to flash or power anything until the DK, the Saleae and the PPK2 are the real, verified devices. CI runs the bench's host tests on every pull request (the job "Closed-loop bench").
-
-**At the checkoff** we explain, without AI tools: the UART framing, CRC-16 and sequence checks; how events reach Bluetooth LE and why a UART ACK isn't a delivery receipt; how the PPK2 measures the nRF5340 rail and why the debugger supply is excluded; and why waiting on events instead of polling, slower advertising and the LED off lower the current.
+Not included. The nRF7002 DK sits outside the BOM, so every figure above leaves it out (see Hardware BOM).
