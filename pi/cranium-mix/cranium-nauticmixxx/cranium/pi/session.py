@@ -57,8 +57,47 @@ def enforce():
     result = subprocess.run(['swaymsg', '-r', '-t', 'get_tree'], capture_output=True, text=True, timeout=2)
     if result.returncode:
         return
-    for command in kiosk_actions(json.loads(result.stdout)):
+    tree = json.loads(result.stdout)
+    # A mapped window is observable readiness, not proof that audio is ready.
+    for node in windows(tree):
+        if node.get('app_id') == 'org.mixxx.Mixxx' and (node.get('name') or '').startswith('CRANIUM'):
+            marker = RUNTIME / 'cranium-window.json'
+            try:
+                previous = json.loads(marker.read_text()) if marker.exists() else {}
+                if previous.get('pid') != node.get('pid'):
+                    temporary = marker.with_suffix('.new')
+                    temporary.write_text(json.dumps({'pid': node.get('pid'),
+                        'uptime_seconds': float(Path('/proc/uptime').read_text().split()[0])}))
+                    temporary.replace(marker)
+            except (OSError, ValueError):
+                pass
+            break
+    for command in kiosk_actions(tree):
         ipc(command)
+
+
+def keyboard_supervisor(start):
+    """The native search keyboard needs no external keyboard process."""
+    pidfile = RUNTIME / 'osk-supervisor.pid'
+    pid = None
+    try:
+        candidate = int(pidfile.read_text())
+        arguments = (Path('/proc') / str(candidate) / 'cmdline').read_bytes().split(b'\0')
+        if candidate > 1 and b'/usr/local/bin/cranium-osk-supervisor' in arguments:
+            pid = candidate
+    except (OSError, ValueError):
+        pass
+    if start and pid is None:
+        state = Path.home() / '.local/state/cranium'
+        state.mkdir(parents=True, exist_ok=True)
+        with (state / 'desktop.log').open('a') as log:
+            subprocess.Popen(['/usr/local/bin/cranium-osk-supervisor'],
+                             stdout=log, stderr=log, start_new_session=True)
+    elif not start and pid is not None:
+        try:
+            os.kill(pid, signal.SIGTERM)
+        except ProcessLookupError:
+            pass
 
 
 def stop_bar():
@@ -80,6 +119,7 @@ def change_mode(developer):
         ipc('mode "cranium-developer"')
         MARKER.write_text('temporary developer desktop\n')
         try:
+            keyboard_supervisor(True)
             ipc('[app_id="org.mixxx.Mixxx"] fullscreen disable')
             ipc('[app_id="org.mixxx.Mixxx"] border normal')
             if not (RUNTIME / 'cranium-waybar.pid').exists():
@@ -90,11 +130,13 @@ def change_mode(developer):
                 (RUNTIME / 'cranium-waybar.pid').write_text(str(bar.pid))
         except Exception:
             MARKER.unlink(missing_ok=True)
+            keyboard_supervisor(False)
             ipc('mode "default"')
             enforce()
             raise
     else:
         MARKER.unlink(missing_ok=True)
+        keyboard_supervisor(False)
         stop_bar()
         ipc('mode "default"')
         ipc('[app_id="org.mixxx.Mixxx"] border none')
@@ -115,12 +157,15 @@ def guard():
         except BlockingIOError:
             return
         MARKER.unlink(missing_ok=True)
+        keyboard_supervisor(False)
         stop_bar()
         monitor = subprocess.Popen(['swaymsg', '-m', '-r', '-t', 'subscribe', '["window"]'],
                                    stdout=subprocess.PIPE, text=True, bufsize=1)
         try:
             while monitor.poll() is None:
-                ready, _, _ = select.select([monitor.stdout], [], [], 1)
+                # Window events enforce immediately; idle recovery is a slower
+                # safety check, avoiding one full compositor tree read/second.
+                ready, _, _ = select.select([monitor.stdout], [], [], 10)
                 if ready:
                     line = monitor.stdout.readline()
                     if not line:

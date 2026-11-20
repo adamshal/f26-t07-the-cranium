@@ -49,6 +49,11 @@ old_result = json.loads((volume / 'cranium-bitedj/install-result.json').read_tex
 if old_result.get('status') != 'installed':
     raise SystemExit('The existing BiteDJ install must be complete first.')
 archive, manifest = installer.verify_archive(artifacts)
+installer.verify_helpers(artifacts)
+# The staging code and the reviewed update must use the same startup sources.
+for name in installer.HELPERS:
+    if (artifacts / name).read_bytes() != (work / 'pi' / name).read_bytes():
+        raise SystemExit('Bundle startup sources differ from this checkout: ' + name)
 if shutil.disk_usage(volume).free < archive.stat().st_size + 15_000_000:
     raise SystemExit('Insufficient free boot-partition space.')
 # An exact 8.3 directory name avoids macOS-generated short aliases that can
@@ -61,7 +66,7 @@ if target.exists():
         raise SystemExit('The previous NauticMixxx install must be complete before an update.')
     _, previous_manifest = installer.verify_archive(target)
 stamp = time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
-evidence = work.parent.parent / 'nauticmixxx-build/evidence' / stamp
+evidence = work.parent.parent / 'build/pi-deployment/evidence' / stamp
 evidence.mkdir(parents=True)
 config = (volume / 'config.txt').read_bytes()
 (evidence / 'cmdline.before.txt').write_bytes(before)
@@ -88,13 +93,15 @@ if pending:
     os.sync()
 for name in ('nauticmixxx-arm64-bookworm.tar.gz', 'manifest.json'):
     shutil.copyfile(artifacts / name, target / name)
-for name in ('installer.py', 'install.sh', 'launch.py', 'app-menu.sh', 'session.py', 'kiosk.py', 'diag.py', 'start.png'):
+for name in installer.HELPERS:
     shutil.copyfile(work / 'pi' / name, target / name)
     assert (work / 'pi' / name).read_bytes() == (target / name).read_bytes()
+shutil.copyfile(artifacts / 'startup-manifest.json', target / 'startup-manifest.json')
 shutil.copyfile(work / 'PI-TRIAL.md', target / 'README.txt')
 (target / 'cmdline.before.txt').write_bytes(before)
 (target / 'cmdline.before.sha256').write_text(hashlib.sha256(before).hexdigest() + '  cmdline.before.txt\n')
 installer.verify_archive(target)
+installer.verify_helpers(target)
 after = before.rstrip(b'\r\n') + suffix.encode() + b'\n'
 # Preserve this FAT directory entry too; cmdline.txt is the final commit.
 with (volume / 'cmdline.txt').open('r+b') as stream:
@@ -110,6 +117,7 @@ report = {'status': 'staged_for_next_pi_boot', 'device': info['DeviceIdentifier'
           'archive_sha256': manifest['sha256'], 'archive_bytes': archive.stat().st_size,
           'unpacked_bytes': manifest['unpacked_bytes'], 'overlay_commit': manifest['overlay_commit'],
           'engine_commit': manifest['engine_commit'], 'previous_manifest': previous_manifest,
+          'startup_revision': 'appliance-v1',
           'replaced_pending_update': pending,
           'boot_entry_sha256': hashlib.sha256(entry_before).hexdigest(),
           'display_config_unchanged': True,

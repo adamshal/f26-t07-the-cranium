@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 """Launch one isolated DJ app and show startup errors in the touchscreen UI."""
 import fcntl
+import json
 import os
 from pathlib import Path
 import signal
@@ -73,6 +74,14 @@ with (state / 'app.lock').open('w') as lock:
             try:
                 app = subprocess.Popen(command, env=env, stdout=log, stderr=log)
                 (state / 'app.pid').write_text(str(app.pid) + '\n')
+                try:
+                    marker = developer_marker.parent / 'cranium-launch.json'
+                    temporary = marker.with_suffix('.new')
+                    temporary.write_text(json.dumps({'pid': app.pid, 'app': selection,
+                        'uptime_seconds': float(Path('/proc/uptime').read_text().split()[0])}))
+                    temporary.replace(marker)
+                except (OSError, ValueError):
+                    pass  # Diagnostics must never prevent playback startup.
                 result = app.wait()
             except OSError as error:
                 log.write('Cranium launcher error: ' + str(error) + '\n')

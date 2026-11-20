@@ -63,8 +63,7 @@ mode "cranium-developer" {
 }
 exec dbus-update-activation-environment --systemd DISPLAY WAYLAND_DISPLAY SWAYSOCK XDG_CURRENT_DESKTOP
 exec /usr/local/bin/cranium-session start
-exec /usr/local/bin/cranium-osk-supervisor
-exec devmon
-exec udiskie --no-tray
+exec /usr/local/bin/cranium-media
 exec /usr/local/bin/cranium-launch auto
+exec /usr/local/bin/cranium-performance --startup
 '''

@@ -4,7 +4,7 @@ set -u
 package=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd) || exit 1
 exec >> "$package/install.log" 2>&1
 cd "$package" || exit 1
-echo "NauticMixxx trial install: $(date -u)"
+echo "CRANIUM update: $(date -u)"
 sha256sum --check cmdline.before.sha256 || exit 1
 cp cmdline.before.txt /boot/firmware/cmdline.txt || exit 1
 sync

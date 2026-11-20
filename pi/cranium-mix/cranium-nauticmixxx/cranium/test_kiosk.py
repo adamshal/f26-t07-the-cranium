@@ -40,6 +40,10 @@ exec nm-applet
         self.assertNotIn('leave_fullscreen',value)
         self.assertNotIn('/home/pi/wallpaper.jpg',value)
         self.assertEqual(value.count('exec /usr/local/bin/cranium-launch auto'),1)
+        self.assertEqual(value.count('exec /usr/local/bin/cranium-media'),1)
+        self.assertNotIn('exec devmon',value)
+        self.assertNotIn('exec udiskie',value)
+        self.assertNotIn('exec /usr/local/bin/cranium-osk-supervisor',value)
         self.assertEqual(kiosk.hardware_settings(value),kiosk.hardware_settings(kiosk.configure_sway(value)))
 
     def test_normal_mode_quarantines_foreign_windows_without_destroying_them(self):
@@ -72,5 +76,20 @@ exec nm-applet
 
     def test_null_window_title_and_no_app_are_safe(self):
         self.assertEqual(session.kiosk_actions({'nodes':[{'app_id':'x','name':None}]}),[])
+
+    def test_keyboard_stop_checks_process_identity(self):
+        with tempfile.TemporaryDirectory() as directory:
+            runtime=Path(directory)
+            (runtime/'osk-supervisor.pid').write_text('123')
+            with mock.patch.object(session,'RUNTIME',runtime), \
+                    mock.patch.object(Path,'read_bytes',return_value=b'/usr/bin/unrelated\0'), \
+                    mock.patch.object(session.os,'kill') as kill:
+                session.keyboard_supervisor(False)
+                kill.assert_not_called()
+            with mock.patch.object(session,'RUNTIME',runtime), \
+                    mock.patch.object(Path,'read_bytes',return_value=b'/usr/bin/python3\0/usr/local/bin/cranium-osk-supervisor\0'), \
+                    mock.patch.object(session.os,'kill') as kill:
+                session.keyboard_supervisor(False)
+                kill.assert_called_once_with(123,session.signal.SIGTERM)
 
 if __name__=='__main__':unittest.main(verbosity=2)

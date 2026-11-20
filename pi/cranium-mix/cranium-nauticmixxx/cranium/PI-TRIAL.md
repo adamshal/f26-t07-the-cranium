@@ -11,6 +11,12 @@ separate PERFORM button. Search's keyboard hides on return to performance.
 Startup artwork is reduced to fit the display. Touch/text usability
 and physical Pi audio still need testing.
 
+This package also includes appliance startup revision 1: quieter boot, one USB
+automounter, desktop keyboard only in Developer Mode, and a short low-priority
+performance capture after login. Early boot can be black until graphics starts.
+No measured speed/audio improvement is claimed before hardware testing. The
+app, audio buffers, CPU governor, kernel and display overlays are preserved.
+
 ## First boot
 
 Insert the safely ejected SD in the powered-off Pi, connect the display, FLX4
@@ -61,15 +67,16 @@ backs up the previous profile; later manual preference changes are preserved.
 If FLX4 audio or mapping is not selected, open Sound Hardware/Controllers in
 Preferences and choose the FLX4 and `Pioneer DDJ-FLX4 - NauticMixxx RX3 browser`.
 
-If fullscreen makes desktop controls inaccessible, a physical keyboard's Alt+M
-opens the Cranium chooser. You can also return the SD to the Mac and set the
-entire contents of `bootfs/cranium-app.txt` to `bitedj`, `nauticmixxx` or `mixxx`
-to force that app on the next boot. `auto` uses the chooser's last selection.
+Use Developer Tools to access the desktop and trial apps. Normal boot always
+opens CRANIUM; the old boot app-selector text file does not override kiosk mode.
+To recover a text login, create an empty `cranium-console-enabled` file on the
+boot volume, then boot with a keyboard. Startup backups and the exact restore
+command are recorded in `CNUPDATE/install-result.json`.
 
 This package preserves the Pi's native graphics/Wayland/C/C++ runtime; there
 is no need to repeat the original BiteDJ library-move correction. No OS reflash
-or internet connection is needed. Source remains editable in the two Cranium
-NauticMixxx repositories on the Mac; putting the SD in the Mac does not update
+or internet connection is needed. Source remains editable in the CRANIUM
+Mix monorepo on the Mac; putting the SD in the Mac does not update
 it unless the package staging/install workflow is run.
 
 ## DDJ-FLX4 and audio setup

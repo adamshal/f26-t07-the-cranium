@@ -40,3 +40,20 @@ controller effect sound and Color FX UX still need hardware validation.
 Build and native-test scripts are included. A complete build of the new
 monorepo layout has not been performed in this publishing step. The native
 application files are the same ones used by the recorded successful build.
+
+## Appliance startup update, November 20, 2026
+
+The startup-only update passes the root host checks: **29 Python tests**, all
+16 controller JavaScript suites, preset/FX/Windows contract/Linux package
+checks, and all 40 XML parses. The new cases cover root/display/serial argument
+preservation, pending-installer refusal, LightDM login preflight, failed boot
+write rollback, exact startup restore, later-edit/corruption/symlink refusal,
+helper checksum tampering, one-automounter selection, keyboard process identity,
+bounded metric capture, CPU/iowait arithmetic and historical/current throttling.
+
+No C++, skin, controller mapping or native audio code changes are needed. The
+offline package reuses the exact saved app archive above and records the new
+startup sources separately. Host checks do not execute LightDM/Sway on ARM64,
+measure boot time or establish audio quality. The Pi is offline and hardware
+startup, USB mounting, Developer Mode, cooling/load and playback checks remain
+pending. No SD card was connected when this update was prepared.

@@ -19,6 +19,9 @@ The exact original commits and build fingerprints are in
 ## What is included
 
 - CRANIUM startup branding and fullscreen appliance session, with developer access.
+- Reversible quiet startup, one USB automounter, a desktop keyboard only in
+  Developer Mode, and bounded performance diagnostics. See
+  [startup/update notes](docs/APPLIANCE-STARTUP.md); Pi verification is pending.
 - The adapted 800 x 480 performance layout and persistent SOURCE, BROWSE,
   TAG LIST, PLAYLIST, SEARCH, MENU and INFO navigation.
 - Rekordbox USB browsing, playlist touch navigation, and imported grids/key/cues
@@ -105,8 +108,8 @@ python3 cranium-nauticmixxx/cranium/bundle-pi.py \
   --engine cranium-nauticmixxx-engine
 ```
 
-The bundle contains the app payload and manifest. Copy the helper files from
-`cranium-nauticmixxx/cranium/pi/` alongside it, as described in
+The bundle contains the app payload and manifest. Use `tools/prepare-pi-update.py`
+to add the startup helpers and their checksums, as described in
 [Pi deployment notes](docs/PI-DEPLOYMENT.md). **This repository is source, not a
 flashable SD image or a ready-made Mac/Windows download.**
 

@@ -11,12 +11,13 @@ with an isolated profile. Confirm screen orientation, touch, USB browsing,
 FLX4 MIDI, audio routing, headphone cue and two-deck playback before deployment.
 
 For the existing CRANIUM appliance, create the offline bundle using bundle-pi.py.
-Copy these helper files from cranium-nauticmixxx/cranium/pi/ alongside the bundle's
-manifest.json and nauticmixxx-arm64-bookworm.tar.gz:
+Use `tools/prepare-pi-update.py` to combine that archive/manifest with these
+current helper files and generate/validate their checksums:
 
 ```text
 installer.py  install.sh  launch.py  app-menu.sh
 session.py    kiosk.py    diag.py    start.png
+appliance.py  media.py    performance.py  startup-manifest.json
 ```
 
 Inspect the installer before running it. The installer updates /opt/cranium and
@@ -32,3 +33,10 @@ It now requires --boot-volume, --expected-volume-uuid and
 It still checks for the original appliance's completed installation and compatible
 boot layout. It refuses mismatches; do not weaken those checks to force another
 SD card through it. No SD card is written by cloning, host checks or building.
+
+The startup-only update and recovery procedure are documented in
+[APPLIANCE-STARTUP.md](APPLIANCE-STARTUP.md). New packages require the helper
+manifest as well as the app archive checksum. The staging helper retains the
+existing boot display configuration until the on-device installer applies its
+small labelled startup block. Private staging evidence is saved under
+`build/pi-deployment/evidence/`.

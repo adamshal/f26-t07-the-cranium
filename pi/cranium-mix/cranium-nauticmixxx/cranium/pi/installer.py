@@ -14,6 +14,19 @@ import tarfile
 import time
 import uuid
 
+HELPERS = ('installer.py', 'install.sh', 'launch.py', 'app-menu.sh', 'session.py',
+           'kiosk.py', 'diag.py', 'appliance.py', 'media.py', 'performance.py', 'start.png')
+
+
+def verify_helpers(package):
+    metadata = json.loads((package / 'startup-manifest.json').read_text())
+    if metadata.get('revision') != 'appliance-v1' or set(metadata.get('files', {})) != set(HELPERS):
+        raise RuntimeError('Incomplete or unrecognized startup manifest.')
+    for name in HELPERS:
+        if hashlib.sha256((package / name).read_bytes()).hexdigest() != metadata['files'][name]:
+            raise RuntimeError('Startup file checksum mismatch: ' + name)
+    return metadata
+
 
 def atomic_write(path, data, mode=0o644):
     path = Path(path)
@@ -146,7 +159,18 @@ def install(package):
         raise RuntimeError('The installed Cranium app chooser was not found.')
     if 'exec /usr/local/bin/cranium-launch auto' not in (home / '.config/sway/config').read_text():
         raise RuntimeError('Unexpected desktop startup; nothing changed.')
+    startup_metadata = verify_helpers(package)
     archive, manifest = verify_archive(package)
+    startup_spec = importlib.util.spec_from_file_location('cranium_appliance', package / 'appliance.py')
+    startup = importlib.util.module_from_spec(startup_spec)
+    startup_spec.loader.exec_module(startup)
+    # Preflight before replacing any application, profile or startup file.
+    startup.check_graphical_login()
+    boot_changes = startup.boot_plan()
+    for name in ('launch.py', 'app-menu.sh', 'session.py', 'kiosk.py', 'media.py',
+                 'performance.py', 'start.png', 'appliance.py'):
+        if not (package / name).is_file():
+            raise RuntimeError('Incomplete startup update: ' + name)
     diagnostic_spec = importlib.util.spec_from_file_location('cranium_diag', package / 'diag.py')
     diagnostic = importlib.util.module_from_spec(diagnostic_spec)
     diagnostic_spec.loader.exec_module(diagnostic)
@@ -157,6 +181,7 @@ def install(package):
     stamp = time.strftime('%Y%m%dT%H%M%S') + '-' + uuid.uuid4().hex[:6]
     backup = home / 'cranium-nauticmixxx-backups' / stamp
     backup.mkdir(parents=True)
+    startup.snapshot(backup)
     target = Path('/opt/cranium/nauticmixxx')
     staging = Path('/opt/cranium') / ('nautic-stage-' + stamp)
     staging.mkdir()
@@ -209,6 +234,10 @@ def install(package):
     kiosk = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(kiosk)
     atomic_write('/usr/local/bin/cranium-session', (package / 'session.py').read_bytes(), 0o755)
+    for target_name, source_name in [('cranium-media', 'media.py'),
+                                     ('cranium-performance', 'performance.py'),
+                                     ('cranium-appliance', 'appliance.py')]:
+        atomic_write(Path('/usr/local/bin') / target_name, (package / source_name).read_bytes(), 0o755)
     atomic_write('/usr/local/share/cranium/start.png', (package / 'start.png').read_bytes())
     atomic_write(sway, kiosk.configure_sway(desktop.read_text()).encode())
     os.chown(sway, user.pw_uid, user.pw_gid)
@@ -241,11 +270,21 @@ def install(package):
                 os.chown(Path(root) / name, user.pw_uid, user.pw_gid)
         os.chown(parent, user.pw_uid, user.pw_gid)
     os.chown(preference, user.pw_uid, user.pw_gid)
+    # Suppress tty1's autologin chatter only after verifying LightDM independently
+    # starts Sway. A marker file on the SD boot volume restores tty1 next boot.
+    atomic_write('/etc/systemd/system/getty@tty1.service.d/cranium-appliance.conf',
+                 b'[Unit]\nConditionPathExists=/boot/firmware/cranium-console-enabled\n')
+    startup.apply_boot(boot_changes)
+    startup.seal(backup)
     return {'status': 'installed', 'default_app': 'nauticmixxx', 'backup': str(backup),
             'trial_size': [800, 480], 'profile': profile_report,
             'overlay_commit': manifest['overlay_commit'], 'engine_commit': manifest['engine_commit'],
             'bitedj_application_and_profile_changed': False, 'original_mixxx_changed': False,
-            'physical_playback_tested': False, 'cranium_appliance_shell': True}
+            'physical_playback_tested': False, 'cranium_appliance_shell': True,
+            'startup_revision': 'appliance-v1', 'quiet_boot': True,
+            'startup_source_commit': startup_metadata['source_commit'],
+            'performance_capture': '30-second delay, 120-second bounded low-priority capture',
+            'startup_restore': 'sudo cranium-appliance restore ' + str(backup)}
 
 
 if __name__ == '__main__':
